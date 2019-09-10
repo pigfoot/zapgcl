@@ -25,6 +25,10 @@ log.Sugar().
     With("simple", true).
     With("foo", "bar").
     Info("This will get written to both stderr and Stackdriver Logging.")
+
+// don't forget this log contain google logging handle
+// if program terminates too early, then log may not send to stackdriver
+log.Sync()
 ```
 
 #### Option 2: More flexibility
@@ -38,6 +42,7 @@ import (
 
 // Configure the pieces
 client, err := logging.NewClient(...)
+defer client.Close()
 cfg := zap.Config{...}
 
 // Create a logger

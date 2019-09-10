@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go/logging v1.0.0
+	github.com/blendle/zapdriver v1.1.6
 	github.com/google/go-cmp v0.3.0
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect

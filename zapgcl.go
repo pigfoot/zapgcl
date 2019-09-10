@@ -28,11 +28,16 @@ package zapgcl
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"runtime"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
 
 	gcl "cloud.google.com/go/logging"
+	"github.com/blendle/zapdriver"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	logpb "google.golang.org/genproto/googleapis/logging/v2"
@@ -241,6 +246,41 @@ func (c *Core) Write(ze zapcore.Entry, newFields []zapcore.Field) error {
 	}
 	if ze.LoggerName != "" {
 		entry.LogName = ze.LoggerName
+	}
+
+	for k, v := range payload {
+		if strings.HasPrefix(k, "labels.") {
+			if len(entry.Labels) == 0 {
+				entry.Labels = make(map[string]string)
+			}
+			new_k := k[7:]
+			entry.Labels[new_k] = v.(string)
+			delete(payload, k)
+		} else if k == "httpRequest" {
+			_v := v.(*zapdriver.HTTPPayload)
+			req := &http.Request{
+				Method: _v.RequestMethod,
+				Header: make(http.Header),
+			}
+			req.URL, _ = url.Parse(_v.RequestURL)
+			req.Header.Set("User-Agent", _v.UserAgent)
+			req.Header.Set("Referer", _v.Referer)
+			reqSize, _ := strconv.ParseInt(_v.RequestSize, 10, 64)
+			respSize, _ := strconv.ParseInt(_v.ResponseSize, 10, 64)
+			latency, _ := time.ParseDuration(_v.Latency)
+			entry.HTTPRequest = &gcl.HTTPRequest{
+				Request:                        req,
+				RequestSize:                    reqSize,
+				Status:                         _v.Status,
+				ResponseSize:                   respSize,
+				Latency:                        latency,
+				LocalIP:                        _v.ServerIP,
+				RemoteIP:                       _v.RemoteIP,
+				CacheHit:                       _v.CacheHit,
+				CacheValidatedWithOriginServer: _v.CacheValidatedWithOriginServer,
+			}
+			delete(payload, k)
+		}
 	}
 
 	insertID, ok := payload[InsertIDKey].(string)
