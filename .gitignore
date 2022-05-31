@@ -1,0 +1,12 @@
+# Golang
+
+## output
+/bin/
+
+## Dependency directories
+#/vendor/
+
+## build temporary file
+.gitversion
+.env
+
