@@ -17,11 +17,9 @@ the zapcore.Core implementation provided by this package.
 	BenchmarkCoreClone-4   	 2000000	       607 ns/op
 	BenchmarkCoreWrite-4   	 1000000	      2811 ns/op
 
-
 Zap docs: https://godoc.org/go.uber.org/zap
 
 Stackdriver Logging docs: https://cloud.google.com/logging/docs/
-
 */
 package zapgcl
 
@@ -37,10 +35,10 @@ import (
 	"time"
 
 	gcl "cloud.google.com/go/logging"
+	"cloud.google.com/go/logging/apiv2/loggingpb"
 	"github.com/blendle/zapdriver"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	logpb "google.golang.org/genproto/googleapis/logging/v2"
 )
 
 const (
@@ -290,7 +288,7 @@ func (c *Core) Write(ze zapcore.Entry, newFields []zapcore.Field) error {
 	delete(payload, InsertIDKey)
 
 	if ze.Caller.Defined {
-		entry.SourceLocation = &logpb.LogEntrySourceLocation{
+		entry.SourceLocation = &loggingpb.LogEntrySourceLocation{
 			File:     ze.Caller.File,
 			Line:     int64(ze.Caller.Line),
 			Function: runtime.FuncForPC(ze.Caller.PC).Name(),

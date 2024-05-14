@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/blendle/zapdriver"
 	"github.com/gin-gonic/gin"
+	gologger "github.com/govargo/go-logger"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +22,7 @@ import (
 // Requests without errors are logged using zap.Info().
 //
 // It receives:
-//   1. A boolean stating whether to use UTC time zone or local.
+//  1. A boolean stating whether to use UTC time zone or local.
 func ZapGin(logger *zap.Logger, utc bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -43,10 +43,10 @@ func ZapGin(logger *zap.Logger, utc bool) gin.HandlerFunc {
 			}
 		} else {
 			res := &http.Response{StatusCode: c.Writer.Status()}
-			httpPayload := zapdriver.NewHTTP(c.Request, res)
+			httpPayload := gologger.NewHTTP(c.Request, res)
 			httpPayload.Latency = latency.String()
 			httpPayload.ResponseSize = strconv.Itoa(c.Writer.Size())
-			logger.Info(path, zapdriver.HTTP(httpPayload))
+			logger.Info(path, gologger.HTTP(httpPayload))
 		}
 	}
 }
